@@ -12,17 +12,15 @@
     <script>
       let { reactive, effect } = Vue
       const obj = reactive({
-        name: {
-          a: '张三',
-        },
+        name: '卖鱼强',
       })
 
       effect(() => {
-        document.querySelector('#app').innerText = obj.name.a
+        document.querySelector('#app').innerText = obj.name
       })
 
       setTimeout(() => {
-        obj.name.a = '李四'
+        obj.name = '狂飙强'
       }, 2000)
     </script>
   </body>

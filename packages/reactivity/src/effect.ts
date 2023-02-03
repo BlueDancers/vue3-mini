@@ -30,7 +30,7 @@ export class ReactiveEffect<T = any> {
     } finally {
       // 简化
       activeEffect = undefined
-      
+
       // 源码中会保存上一个effect(effect嵌套场景),主要解决effect的嵌套调用问题
       // constructor parent: ReactiveEffect | undefined = undefined
       // catch  activeEffect = this.parent
@@ -74,10 +74,10 @@ export function track(target: object, key: string) {
 }
 
 /**
- *
+ * 将当前effect添加到dep(set)中
  * @param dep
  */
-function trackEffects(dep: Dep) {
+export function trackEffects(dep: Dep) {
   dep.add(activeEffect!)
 }
 
@@ -103,7 +103,7 @@ export function trigger(target: object, key: string, newValue: unknown) {
 /**
  * 处理所有待触发依赖
  */
-function triggerEffects(dep: Dep) {
+export function triggerEffects(dep: Dep) {
   // const effects = isArray(dep) ? dep : [...dep]
   const effects = [...dep]
   for (const effect of effects) {
