@@ -11,6 +11,15 @@ export function hasChange(value: any, oldValue: any): boolean {
   return !Object.is(value, oldValue)
 }
 
+/**
+ * 是否是一个防范
+ * @returns
+ */
 export function isFunction(val: unknown): boolean {
   return typeof val === 'function'
 }
+
+/**
+ * 只读空对象
+ */
+export const EMPTY_OBJ: { readonly [key: string]: any } = {}

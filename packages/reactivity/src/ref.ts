@@ -103,5 +103,5 @@ export function triggerRefValue(ref) {
  * 判断是否是ref
  */
 export function isRef(r: any): boolean {
-  return !!(r && r.__v_isRef === true)
+  return !!(r && r.__v_isRef)
 }

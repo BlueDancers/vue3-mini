@@ -1,4 +1,3 @@
-import { isArray } from '@vue/shared'
 import { ComputedRefImpl } from './computed'
 import { createDep, Dep } from './dep'
 
@@ -43,6 +42,9 @@ export class ReactiveEffect<T = any> {
       // finally this.parent = undefined
     }
   }
+  stop() {
+    // 后面继续实现
+  }
 }
 
 interface Dictionary<T> {
@@ -54,7 +56,6 @@ type StrDict = Dictionary<string>
  * 依赖收集
  */
 export function track(target: object, key: string) {
-  console.log('依赖收集')
   // 当前没带缓存的effect,无依赖需要收集,直接退出
   if (!activeEffect) {
     return
@@ -72,10 +73,7 @@ export function track(target: object, key: string) {
   }
   // 将effect与被读取变量建立联系
   trackEffects(dep)
-  // dep.add(activeEffect!)
-
-  // depsMap.set(key, activeEffect)
-  // console.log('targetMap', targetMap)
+  // 等同于 depsMap.set(key, activeEffect)
 }
 
 /**
