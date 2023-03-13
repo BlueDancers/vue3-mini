@@ -75,7 +75,7 @@ class RefImpl<T = any> {
 /**
  * ref 依赖收集
  */
-export function trackRefValue(ref: RefImpl) {
+export function trackRefValue(ref) {
   // 判断当前是否存在需要收集的依赖
   if (activeEffect) {
     // 判断RefImpl的实例中的dep是否被初始化过
@@ -91,7 +91,7 @@ export function trackRefValue(ref: RefImpl) {
 /**
  * ref 依赖触发
  */
-export function triggerRefValue(ref: RefImpl) {
+export function triggerRefValue(ref) {
   // 当前当前RefImpl实例中是否存在收集的依赖
   if (ref.dep) {
     // 触发依赖

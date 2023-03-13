@@ -1,5 +1,7 @@
+import { ComputedRefImpl } from './computed'
 import { createDep, Dep } from './dep'
 
+export type EffectScheduler = (...args: any[]) => any
 type KeyDepType = Map<any, Dep>
 const targetMap = new WeakMap<any, KeyDepType>()
 
@@ -20,7 +22,8 @@ export let activeEffect: ReactiveEffect | undefined
 
 // <T = any> 给泛型一个默认值 否则作为类型的时候,一定要指定泛型类型
 export class ReactiveEffect<T = any> {
-  constructor(public fn: () => T) {}
+  public computed?: ComputedRefImpl<T>
+  constructor(public fn: () => T, public scheduler: EffectScheduler | null = null) {}
 
   run() {
     try {
@@ -109,5 +112,9 @@ export function triggerEffects(dep: Dep) {
  * 触发执行依赖
  */
 function triggerEffect(effect: ReactiveEffect) {
-  effect.fn()
+  if (effect.scheduler) {
+    effect.scheduler()
+  } else {
+    effect.fn()
+  }
 }
