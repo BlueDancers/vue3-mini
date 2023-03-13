@@ -1,4 +1,4 @@
-import { EMPTY_OBJ, hasChange, isFunction, isObject } from '@vue-mini/shared'
+import { hasChange, EMPTY_OBJ, isArray, isFunction, isObject } from '@vue-mini/shared'
 import { isReactive, isRef, ReactiveEffect } from '@vue-mini/reactivity'
 import { queuePreFlushCb } from './scheduler'
 
@@ -7,21 +7,35 @@ export interface WatchOptions<immediate = boolean> {
   deep?: boolean
 }
 
+// 观察者在未定义的初始值上触发的初始值
+const INITIAL_WATCHER_VALUE = {}
+
 export function watch(source: any, cb: Function, options: WatchOptions) {
   return doWatch(source, cb, options)
 }
 
 function doWatch(source, cb: Function, { deep, immediate }: WatchOptions = EMPTY_OBJ) {
   let getter: () => any
+  let isMultiSource = false // 是否是多源监听
 
   if (isReactive(source)) {
     getter = () => source
     deep = true
   } else if (isRef(source)) {
     getter = () => source.value
-  } else if (isFunction(source)) {
-    // 后面再写
-    getter = () => {}
+  } else if (isArray(source)) {
+    isMultiSource = true
+    // 如果是对象则,循环处理每一项
+    // ref则返回其value
+    // reactive则通过traverse,递归访问所有key
+    getter = () =>
+      source.map((s) => {
+        if (isRef(s)) {
+          return s.value
+        } else if (isReactive(s)) {
+          return traverse(s)
+        }
+      })
   } else {
     getter = () => {}
   }
@@ -33,7 +47,7 @@ function doWatch(source, cb: Function, { deep, immediate }: WatchOptions = EMPTY
     // getter = () => traverse(getter()) // 会触发内存泄露
   }
 
-  let oldValue = {}
+  let oldValue = isMultiSource ? [] : INITIAL_WATCHER_VALUE
   // 触发job就是触发watch
   const job = () => {
     if (cb) {
