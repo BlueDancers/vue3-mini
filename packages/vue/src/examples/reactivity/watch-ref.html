@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="../../../dist/vue.js"></script>
+    <script>
+      let { ref, watch } = Vue
+      const obj = ref('卖鱼强')
+
+      watch(
+        obj,
+        (newValue, oldValue) => {
+          console.log('watch被触发', newValue, oldValue)
+          document.querySelector('#app').innerText = newValue
+        },
+        {
+          immediate: true,
+        }
+      )
+
+      setTimeout(() => {
+        obj.value = '狂飙强'
+      }, 2000)
+    </script>
+  </body>
+</html>
