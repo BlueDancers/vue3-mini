@@ -40,6 +40,9 @@ export class ReactiveEffect<T = any> {
       // finally this.parent = undefined
     }
   }
+  stop() {
+    // 后面继续实现
+  }
 }
 
 /**
@@ -82,7 +85,7 @@ export function trackEffects(dep: Dep) {
  * 依赖触发
  */
 export function trigger(target: object, key: string, newValue: unknown) {
-  console.log('依赖触发')
+  console.log('依赖触发', targetMap)
   let depsMap = targetMap.get(target)
   // 如果拿不到Map,这说明当前对象没有effect要触发
   if (!depsMap) {

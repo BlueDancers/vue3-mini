@@ -22,11 +22,21 @@ importers:
     dependencies:
       '@vue-mini/shared': link:../shared
 
+  packages/runtim-core:
+    specifiers:
+      '@vue-mini/reactivity': workspace:^1.0.0
+      '@vue-mini/shared': workspace:^1.0.0
+    dependencies:
+      '@vue-mini/reactivity': link:../reactivity
+      '@vue-mini/shared': link:../shared
+
   packages/vue:
     specifiers:
       '@vue-mini/reactivity': workspace:^1.0.0
+      '@vue-mini/runtim-core': workspace:^1.0.0
     dependencies:
       '@vue-mini/reactivity': link:../reactivity
+      '@vue-mini/runtim-core': link:../runtim-core
 
 packages:
 
