@@ -39,11 +39,6 @@ export class ReactiveEffect<T = any> {
   }
 }
 
-interface Dictionary<T> {
-  [key: string]: T
-}
-type StrDict = Dictionary<string>
-
 /**
  * 依赖收集
  */
