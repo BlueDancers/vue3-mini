@@ -35,11 +35,7 @@
     "baseUrl": ".",
     // 设置路径映射
     // 设置后ts在打包过程中也会自动完成路径映射,需要其他地方再次设置
-    "paths": {
-      "@vue/*": [
-        "packages/*/src"
-      ]
-    }
+    "paths": {}
   },
   "include": [
     "packages/*/src"

@@ -1,9 +1,6 @@
-import { ComputedRefImpl } from './computed'
 import { createDep, Dep } from './dep'
 
-export type EffectScheduler = (...args: any[]) => any
 type KeyDepType = Map<any, Dep>
-
 const targetMap = new WeakMap<any, KeyDepType>()
 
 export function effect<T = any>(fn: () => T) {
@@ -23,9 +20,7 @@ export let activeEffect: ReactiveEffect | undefined
 
 // <T = any> 给泛型一个默认值 否则作为类型的时候,一定要指定泛型类型
 export class ReactiveEffect<T = any> {
-  public computed?: ComputedRefImpl<T>
-
-  constructor(public fn: () => T, public scheduler: EffectScheduler | null = null) {}
+  constructor(public fn: () => T) {}
 
   run() {
     try {
@@ -42,9 +37,6 @@ export class ReactiveEffect<T = any> {
       // finally this.parent = undefined
     }
   }
-  stop() {
-    // 后面继续实现
-  }
 }
 
 interface Dictionary<T> {
@@ -56,6 +48,7 @@ type StrDict = Dictionary<string>
  * 依赖收集
  */
 export function track(target: object, key: string) {
+  console.log('依赖收集')
   // 当前没带缓存的effect,无依赖需要收集,直接退出
   if (!activeEffect) {
     return
@@ -73,14 +66,17 @@ export function track(target: object, key: string) {
   }
   // 将effect与被读取变量建立联系
   trackEffects(dep)
-  // 等同于 depsMap.set(key, activeEffect)
+  // dep.add(activeEffect!)
+
+  // depsMap.set(key, activeEffect)
+  console.log('targetMap', targetMap)
 }
 
 /**
- * 将当前effect添加到dep(set)中
+ *
  * @param dep
  */
-export function trackEffects(dep: Dep) {
+function trackEffects(dep: Dep) {
   dep.add(activeEffect!)
 }
 
@@ -88,6 +84,7 @@ export function trackEffects(dep: Dep) {
  * 依赖触发
  */
 export function trigger(target: object, key: string, newValue: unknown) {
+  console.log('依赖触发')
   let depsMap = targetMap.get(target)
   // 如果拿不到Map,这说明当前对象没有effect要触发
   if (!depsMap) {
@@ -105,7 +102,7 @@ export function trigger(target: object, key: string, newValue: unknown) {
 /**
  * 处理所有待触发依赖
  */
-export function triggerEffects(dep: Dep) {
+function triggerEffects(dep: Dep) {
   // const effects = isArray(dep) ? dep : [...dep]
   const effects = [...dep]
   for (const effect of effects) {
@@ -117,9 +114,5 @@ export function triggerEffects(dep: Dep) {
  * 触发执行依赖
  */
 function triggerEffect(effect: ReactiveEffect) {
-  if (effect.scheduler) {
-    effect.scheduler()
-  } else {
-    effect.fn()
-  }
+  effect.fn()
 }
