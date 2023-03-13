@@ -71,7 +71,7 @@ export function track(target: object, key: string) {
  *
  * @param dep
  */
-function trackEffects(dep: Dep) {
+export function trackEffects(dep: Dep) {
   dep.add(activeEffect!)
 }
 
@@ -97,7 +97,7 @@ export function trigger(target: object, key: string, newValue: unknown) {
 /**
  * 处理所有待触发依赖
  */
-function triggerEffects(dep: Dep) {
+export function triggerEffects(dep: Dep) {
   // const effects = isArray(dep) ? dep : [...dep]
   const effects = [...dep]
   for (const effect of effects) {
