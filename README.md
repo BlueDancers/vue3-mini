@@ -32,7 +32,7 @@ pnpm install
 pnpm run dev
 ```
 
-2. 在examples目录下启动Live Server
+2. 在/packages/vue/src/examples目录下启动Live Server
 
 
 
