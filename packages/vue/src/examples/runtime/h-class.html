@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script src="../../../dist/vue.js"></script>
+    <script>
+      const { h } = Vue
+      const vnode1 = h('div', { class: { test1: true, test2: true } }, '这是class的测试代码')
+      console.log(vnode1)
+      const vnode2 = h('div', { class: ['test1', 'test2'] }, '这是class的测试代码')
+      console.log(vnode2)
+      const vnode3 = h('div', { style: 'font-size:14px;color:#fff;' }, '这是class的测试代码')
+      console.log(vnode3)
+      const vnode4 = h('div', { style: { fontSize: '14px', color: '#fff' } }, '这是class的测试代码')
+      console.log(vnode4)
+      const vnode5 = h(
+        'div',
+        {
+          style: [
+            { fontSize: '14px', color: '#fff' },
+            { width: '100px', height: 'calc(100vh - 100px)' },
+          ],
+        },
+        '这是class的测试代码'
+      )
+      console.log(vnode5)
+      const vnode6 = h(
+        'div',
+        {
+          style: ['fontSize:14px;color:#fff', 'width:100px;height:calc(100vh - 100px)'],
+        },
+        '这是class的测试代码'
+      )
+      console.log(vnode6)
+    </script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-export const isArray = (arr: []) => Array.isArray(arr)
+export const isArray = (arr: any) => Array.isArray(arr)
 
 export const isObject = (val: unknown): val is Record<any, any> => val !== null && typeof val === 'object'
 
@@ -11,6 +11,10 @@ export function hasChange(value: any, oldValue: any): boolean {
 
 export function isFunction(val: unknown): boolean {
   return typeof val === 'function'
+}
+
+export function isString(val): boolean {
+  return typeof val === 'string'
 }
 
 /**
