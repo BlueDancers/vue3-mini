@@ -1,5 +1,5 @@
 {
-  "name": "@vue-mini/runtim-core",
+  "name": "@vue-mini/runtime-dom",
   "version": "1.0.0",
   "description": "",
   "main": "./src/index.ts",
@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@vue-mini/reactivity": "workspace:^1.0.0",
+    "@vue-mini/runtime-core": "workspace:^",
     "@vue-mini/shared": "workspace:^1.0.0"
   }
 }

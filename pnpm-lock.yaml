@@ -26,11 +26,20 @@ importers:
         specifier: workspace:^1.0.0
         version: link:../shared
 
-  packages/runtim-core:
+  packages/runtime-core:
     dependencies:
       '@vue-mini/reactivity':
         specifier: workspace:^1.0.0
         version: link:../reactivity
+      '@vue-mini/shared':
+        specifier: workspace:^1.0.0
+        version: link:../shared
+
+  packages/runtime-dom:
+    dependencies:
+      '@vue-mini/runtime-core':
+        specifier: workspace:^
+        version: link:../runtime-core
       '@vue-mini/shared':
         specifier: workspace:^1.0.0
         version: link:../shared
@@ -42,9 +51,12 @@ importers:
       '@vue-mini/reactivity':
         specifier: workspace:^1.0.0
         version: link:../reactivity
-      '@vue-mini/runtim-core':
+      '@vue-mini/runtime-core':
         specifier: workspace:^1.0.0
-        version: link:../runtim-core
+        version: link:../runtime-core
+      '@vue-mini/runtime-dom':
+        specifier: workspace:^
+        version: link:../runtime-dom
 
 packages:
 

@@ -21,3 +21,16 @@ export function isString(val): boolean {
  * 只读空对象
  */
 export const EMPTY_OBJ: { readonly [key: string]: any } = {}
+
+const onRE = /^on[^a-z]/
+/**
+ * 判断是否on开头
+ * @param key
+ * @returns
+ */
+export const isOn = (key: string) => onRE.test(key)
+
+/**
+ * 对象合并
+ */
+export const extend = Object.assign
