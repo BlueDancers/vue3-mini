@@ -12,6 +12,7 @@ export type VNode = {
   props: any
   children: any
   shapeFlag: number
+  key: any
 }
 
 /**
@@ -60,6 +61,7 @@ function createBaseVNode(type, props, children, shapeFlag, needFullChildrenNorma
     props,
     shapeFlag,
     type,
+    key: null,
   }
   if (needFullChildrenNormalization) {
     normalizeChildren(vnode, children)
@@ -87,4 +89,14 @@ function normalizeChildren(vnode: VNode, children) {
   vnode.shapeFlag |= type
   // 等同于以下写法
   // vnode.shapeFlag = vnode.shapeFlag | type
+}
+
+/**
+ * 判断2个VNode是否为一个元素
+ * @param n1 
+ * @param n2 
+ * @returns 
+ */
+export function isSameVNodeType(n1: VNode, n2: VNode) {
+  return n1.type === n2.type && n1.key === n2.key
 }

@@ -1,5 +1,5 @@
 import { ShapeFlags } from 'packages/shared/src/shapeFlags'
-import { Comment, Fragment, Text } from './vnode'
+import { Comment, Fragment, Text, isSameVNodeType } from './vnode'
 import { EMPTY_OBJ } from 'packages/shared/src'
 
 type RendererOptions = {
@@ -12,11 +12,10 @@ type RendererOptions = {
    */
   patchProp(el: Element, key: string, preValue: any, nextValue: any): void
   /**
-   * 指定元素设置文本
-   * @param node
-   * @param text
+   * 创建元素
+   * @param type
    */
-  setElementText(node: Element, text: string): void
+  createElement(type: string)
   /**
    * 插入指定el到parent的指定位置
    * @param el 元素
@@ -25,10 +24,16 @@ type RendererOptions = {
    */
   insert(el, parent: Element, anchor?): void
   /**
-   * 创建元素
+   * 指定元素设置文本
+   * @param node
+   * @param text
+   */
+  setElementText(node: Element, text: string): void
+  /**
+   * 移除元素
    * @param type
    */
-  createElement(type: string)
+  remove(type: Element)
 }
 
 export function createRenderer(options: RendererOptions) {
@@ -41,6 +46,7 @@ export function baseCreateRenderer(options: RendererOptions) {
     insert: hostInsert,
     patchProp: hostPatchProp,
     setElementText: hostSetElementText,
+    remove: hostRemove,
   } = options
 
   function processElement(oldVNode, newVNode, container, anchor) {
@@ -161,6 +167,12 @@ export function baseCreateRenderer(options: RendererOptions) {
     if (oldVNode === newVNode) {
       return
     }
+    // 如果旧节点存在,并且新旧节点不一致,则卸载旧节点
+    if (oldVNode && !isSameVNodeType(oldVNode, newVNode)) {
+      unmount(oldVNode)
+      oldVNode = null
+    }
+
     let { type, shapeFlag } = newVNode
     if (type === Text) {
       // 节点是文本
@@ -179,9 +191,16 @@ export function baseCreateRenderer(options: RendererOptions) {
     }
   }
 
+  function unmount(vnode) {
+    hostRemove(vnode.el)
+  }
+
   const render = (vnode, container) => {
     if (vnode == null) {
       // 卸载
+      if (container._vnode) {
+        unmount(vnode)
+      }
     } else {
       // 加载节点
       patch(container._vnode || null, vnode, container)
