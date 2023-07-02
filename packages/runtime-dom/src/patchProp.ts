@@ -2,11 +2,13 @@ import { isOn } from '@vue-mini/shared'
 import { patchClass } from './modules/class'
 import { patchDOMProp } from './modules/props'
 import { patchAttr } from './modules/attrs'
+import { patchStyle } from './modules/style'
 
 export const patchProp = (el: Element, key: string, prevValue, nextValue) => {
   if (key === 'class') {
     patchClass(el, nextValue)
   } else if (key === 'style') {
+    patchStyle(el, prevValue, nextValue)
   } else if (isOn(key)) {
   } else if (shouldSetAsProp(el, key)) {
     // 如果可以通过dom原生属性进行设置,则进入这里
