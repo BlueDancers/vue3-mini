@@ -1,6 +1,7 @@
 import { ShapeFlags } from 'packages/shared/src/shapeFlags'
 import { Comment, Fragment, Text, isSameVNodeType } from './vnode'
-import { EMPTY_OBJ } from 'packages/shared/src'
+import { EMPTY_OBJ, isString } from 'packages/shared/src'
+import { normalizeVNode } from './componentRenderUtils'
 
 type RendererOptions = {
   /**
@@ -34,6 +35,18 @@ type RendererOptions = {
    * @param type
    */
   remove(type: Element)
+  /**
+   * 创建文本节点
+   */
+  createText(text: string): void
+  /**
+   * 更新文本节点
+   */
+  setText(el: Element, text: string): void
+  /**
+   * 创建备注节点
+   */
+  createComment(text: string): void
 }
 
 export function createRenderer(options: RendererOptions) {
@@ -47,8 +60,50 @@ export function baseCreateRenderer(options: RendererOptions) {
     patchProp: hostPatchProp,
     setElementText: hostSetElementText,
     remove: hostRemove,
+    createText: hostCreateText,
+    setText: hostSetText,
+    createComment: hostCreateComment,
   } = options
 
+  /**
+   * 处理Text类型的Vnode
+   */
+  function processText(oldVNode, newVNode, container, anchor) {
+    if (oldVNode == null) {
+      // 挂载
+      newVNode.el = hostCreateText(newVNode.children)
+      hostInsert(newVNode.el, container, anchor)
+    } else {
+      // 更新
+      const el = (newVNode.el = oldVNode.el)
+      if (newVNode.children != oldVNode.children) {
+        hostSetText(el, newVNode.children)
+      }
+    }
+  }
+
+  function processCommentNode(oldVNode, newVNode, container, anchor) {
+    console.log('注释节点')
+    if (oldVNode == null) {
+      newVNode.el = hostCreateComment(newVNode.children)
+      hostInsert(newVNode.el, container, anchor)
+    } else {
+      // vue3并没有给comment组件增加更新逻辑,所以即使comment组件发生变化,也不会更新注释内容
+      newVNode.el = oldVNode.el
+    }
+  }
+
+  function processFragment(oldVNode, newVNode, container, anchor) {
+    if (oldVNode === null) {
+      mountChildren(newVNode.children, container, anchor)
+    } else {
+      patchChildren(oldVNode, newVNode, container, anchor)
+    }
+  }
+
+  /**
+   * 处理html标签的Vnode
+   */
   function processElement(oldVNode, newVNode, container, anchor) {
     if (oldVNode == null) {
       // 初始化阶段不存在
@@ -93,6 +148,24 @@ export function baseCreateRenderer(options: RendererOptions) {
     console.log(el, newVNode, oldVNode)
   }
 
+  /**
+   * 创建子节点
+   */
+  function mountChildren(children, container, anchor) {
+    if (isString(children)) {
+      children = children.split('')
+    }
+
+    for (let i = 0; i < children.length; i++) {
+      // 如果children的类型是string,则
+      const child = (children[i] = normalizeVNode(children[i]))
+      patch(null, child, container, anchor)
+    }
+  }
+
+  /**
+   * 更新子节点
+   */
   function patchChildren(oldVNode, newVNode, el, anchor) {
     const c1 = oldVNode.children
     const prevShapeFlag = oldVNode.shapeFlag || 0
@@ -174,12 +247,17 @@ export function baseCreateRenderer(options: RendererOptions) {
     }
 
     let { type, shapeFlag } = newVNode
+    console.log('type', type)
+
     if (type === Text) {
-      // 节点是文本
+      // 文本节点
+      processText(oldVNode, newVNode, container, anchor)
     } else if (type === Comment) {
-      // 节点是注释
+      // 注释节点
+      processCommentNode(oldVNode, newVNode, container, anchor)
     } else if (type === Fragment) {
-      // 节点是代码片段
+      // 片段节点
+      processFragment(oldVNode, newVNode, container, anchor)
     } else {
       // 节点是元素标签
       if (shapeFlag & ShapeFlags.ELEMENT) {

@@ -17,4 +17,13 @@ export const nodeOps = {
       parent.removeChild(el)
     }
   },
+  createText: (text: string) => {
+    return doc.createTextNode(text)
+  },
+  setText: (el: Element, text: string) => {
+    return (el.nodeValue = text)
+  },
+  createComment: (text: string) => {
+    return doc.createComment(text)
+  },
 }
