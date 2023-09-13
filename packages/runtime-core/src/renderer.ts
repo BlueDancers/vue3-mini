@@ -1,7 +1,10 @@
 import { ShapeFlags } from 'packages/shared/src/shapeFlags'
 import { Comment, Fragment, Text, isSameVNodeType } from './vnode'
 import { EMPTY_OBJ, isString } from 'packages/shared/src'
-import { normalizeVNode } from './componentRenderUtils'
+import { normalizeVNode, rednerComponentRoot } from './componentRenderUtils'
+import { createComponentInstance, setupComponent } from './component'
+import { ReactiveEffect } from 'packages/reactivity/src'
+import { queuePreFlushCb } from './scheduler'
 
 type RendererOptions = {
   /**
@@ -102,7 +105,7 @@ export function baseCreateRenderer(options: RendererOptions) {
   }
 
   /**
-   * 处理html标签的Vnode
+   * 处理html标签的原生标签
    */
   function processElement(oldVNode, newVNode, container, anchor) {
     if (oldVNode == null) {
@@ -111,6 +114,21 @@ export function baseCreateRenderer(options: RendererOptions) {
     } else {
       // 更新逻辑
       patchElement(oldVNode, newVNode)
+    }
+  }
+
+  /**
+   * 处理html标签中的组件
+   * @param oldVNode
+   * @param newVNode
+   * @param container
+   * @param anchor
+   */
+  function processComponent(oldVNode, newVNode, container, anchor) {
+    if (oldVNode == null) {
+      mountComponent(newVNode, container, anchor)
+    } else {
+      console.log('更新操作')
     }
   }
 
@@ -146,6 +164,58 @@ export function baseCreateRenderer(options: RendererOptions) {
     patchChildren(oldVNode, newVNode, el, null)
     patchProps(el, newVNode, oldProps, newProps)
     console.log(el, newVNode, oldVNode)
+  }
+
+  /**
+   * 挂载组件
+   */
+  function mountComponent(initialVNode, container, anchor) {
+    // initialVNode就是组件的vnode本身
+    // createComponentInstance构建了一个组件的必要对象
+    initialVNode.component = createComponentInstance(initialVNode)
+    const instance = initialVNode.component
+
+    // 绑定render函数，经过这行代码，instance的render就等于type.render
+    setupComponent(instance)
+    // 渲染页面
+    setupRenderEffect(instance, initialVNode, container, anchor)
+  }
+
+  /**
+   * 将组件渲染到页面
+   */
+  function setupRenderEffect(instance, initialVNode, container, anchor) {
+    // instance是组件本身，本函数，将组件的必要函数都进行了填充以及组件的挂在操作
+    const componentUpdateFn = () => {
+      if (!instance.isMounted) {
+        const { bm, m } = instance
+
+        if (bm) {
+          bm()
+        }
+
+        console.log('首次挂载')
+        const subTree = (instance.subTree = rednerComponentRoot(instance))
+
+        patch(null, subTree, container, anchor)
+        // 将组件的el保存到组件的component中，也就是initialVNode
+        initialVNode.el = subTree.el
+
+        if (m) {
+          m()
+        }
+      } else {
+        console.log('更新组件')
+      }
+    }
+    //
+    instance.effect = new ReactiveEffect(componentUpdateFn, () => queuePreFlushCb(update))
+    const effect = instance.effect
+
+    instance.update = () => effect.run()
+    const update = instance.update
+
+    update()
   }
 
   /**
@@ -264,7 +334,9 @@ export function baseCreateRenderer(options: RendererOptions) {
         // 子节点是string
         processElement(oldVNode, newVNode, container, anchor)
       } else if (shapeFlag & ShapeFlags.COMPONENT) {
-        // 子阶段是组件
+        // 子节点是组件
+        console.log('开始组件的挂载')
+        processComponent(oldVNode, newVNode, container, anchor)
       }
     }
   }

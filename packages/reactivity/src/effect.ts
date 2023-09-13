@@ -9,39 +9,34 @@ export function effect<T = any>(fn: () => T) {
   const _effect = new ReactiveEffect(fn)
   // 完成第一次执行
   _effect.run()
-  // 依赖收集完毕 清除当前effect
-  // activeEffect = undefined
-  // 如果不清除 最后一次被初始化的effect将会一直留在内存中
-  // 在若干时间后,触发get行为,都是触发track,将一直留在内存中的effec与当前get的变量产生联系,造成错误的依赖收集
 }
 
 /**
  * 当前被执行的effect
  */
 export let activeEffect: ReactiveEffect | undefined
+const effectStack: any[] = []
 
 // <T = any> 给泛型一个默认值 否则作为类型的时候,一定要指定泛型类型
 export class ReactiveEffect<T = any> {
   public computed?: ComputedRefImpl<T>
   constructor(public fn: () => T, public scheduler: EffectScheduler | null = null) {}
+  deps: Dep[] = []
 
   run() {
     try {
+      cleanup(this)
       activeEffect = this
-      return this.fn()
-    } finally {
-      // 简化
-      activeEffect = undefined
-
-      // 源码中会保存上一个effect(effect嵌套场景),主要解决effect的嵌套调用问题
-      // constructor parent: ReactiveEffect | undefined = undefined
-      // catch  activeEffect = this.parent
-      // finally this.parent = activeEffect
-      // finally this.parent = undefined
+      effectStack.push(activeEffect)
+      let res = this.fn()
+      effectStack.pop() // 移除当前effect
+      activeEffect = effectStack[effectStack.length - 1] // 获取上一个effect
+      return res
+    } catch (error) {
+      console.log(error)
     }
   }
   stop() {
-    // 后面继续实现
   }
 }
 
@@ -60,16 +55,19 @@ export function track(target: object, key: string) {
     targetMap.set(target, depsMap)
   }
   // 获取对象内变量是否存在Set 如果不存在 进行初始化
-  let dep = depsMap.get(key)
-  if (!dep) {
-    dep = createDep()
-    depsMap.set(key, dep)
+  let deps = depsMap.get(key)
+  if (!deps) {
+    deps = createDep()
+    depsMap.set(key, deps)
   }
   // 将effect与被读取变量建立联系
-  trackEffects(dep)
+  trackEffects(deps)
   // dep.add(activeEffect!)
 
   // depsMap.set(key, activeEffect)
+
+  // 单触发effect的时候，一个effect里面存在多个get的场景，所以这里可以收集到多个effect
+  activeEffect.deps.push(deps)
   console.log('targetMap', targetMap)
 }
 
@@ -91,13 +89,13 @@ export function trigger(target: object, key: string, newValue: unknown) {
   if (!depsMap) {
     return
   }
-  const dep: Dep | undefined = depsMap.get(key)
+  const effects: Dep | undefined = depsMap.get(key)
 
   // 虽然当前对象中存在effect, 但是本次读取的 对象内变量 不存在,所以此处获取不到值
-  if (!dep) {
+  if (!effects) {
     return
   }
-  triggerEffects(dep)
+  triggerEffects(effects)
 }
 
 /**
@@ -107,7 +105,9 @@ export function triggerEffects(dep: Dep) {
   // const effects = isArray(dep) ? dep : [...dep]
   const effects = [...dep]
   for (const effect of effects) {
-    triggerEffect(effect)
+    if (effect !== activeEffect) {
+      triggerEffect(effect)
+    }
   }
 }
 
@@ -118,6 +118,20 @@ function triggerEffect(effect: ReactiveEffect) {
   if (effect.scheduler) {
     effect.scheduler()
   } else {
-    effect.fn()
+    effect.run()
   }
+}
+
+/**
+ * 清除依赖
+ * @param effect
+ */
+function cleanup(effect: ReactiveEffect) {
+  // 再触发get时候，会将所有触发的依赖的effect都添加到effect.deps中
+  // 将上一次依赖收集到的ReactiveEffect全部都清除，在一次触发get时候，重新收集依赖
+  for (let i = 0; i < effect.deps.length; i++) {
+    const dep = effect.deps[i]
+    dep.delete(effect)
+  }
+  effect.deps.length = 0
 }

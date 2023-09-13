@@ -16,10 +16,21 @@
         },
       }
       const vnode = h(component)
-      console.log('开始挂载组件');
-      console.log(vnode);
+      console.log('开始挂载组件')
+      console.log(vnode)
       render(vnode, document.querySelector('#app'))
-      // 针对无状态组件，render函数再挂载的时候会多生成几个组件特有的参数 比如props、emit等等
+
+      setTimeout(() => {
+        const component = {
+          render() {
+            return h('div', '我更新了')
+          },
+        }
+        const vnode = h(component)
+        console.log('开始挂载组件')
+        console.log(vnode)
+        render(vnode, document.querySelector('#app'))
+      }, 2000)
     </script>
   </body>
 </html>

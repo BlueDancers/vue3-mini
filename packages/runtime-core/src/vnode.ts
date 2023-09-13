@@ -77,6 +77,7 @@ function normalizeChildren(vnode: VNode, children) {
   } else if (isArray(children)) {
     type = ShapeFlags.ARRAY_CHILDREN
   } else if (isObject(children)) {
+    // 如果是object，则说明是渲染子组件
     children = children.render()
     type = ShapeFlags.FUNCTIONAL_COMPONENT
   } else if (isFunction(children)) {
